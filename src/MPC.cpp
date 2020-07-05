@@ -55,20 +55,20 @@ class FG_eval {
 
     // Define our Cost Function
     for (int i = 0; i < N; i++) {
-      fg[0] += 3000*CppAD::pow(vars[cte_start + i], 2);     // Just like LQR, penalize the CTE, epsi, and velocity
-      fg[0] += 3000*CppAD::pow(vars[epsi_start + i], 2);
+      fg[0] += 200*CppAD::pow(vars[cte_start + i], 2);     // Just like LQR, penalize the CTE, epsi, and velocity
+      fg[0] += 300*CppAD::pow(vars[epsi_start + i], 2);
       fg[0] += CppAD::pow(vars[v_start + i] - ref_v, 2);
     }
 
     for (int i = 0; i < N - 1; i++) {
-      fg[0] += 5*CppAD::pow(vars[delta_start + i], 2);     // Penalize the delta and acceleration
+      fg[0] += 20*CppAD::pow(vars[delta_start + i], 2);     // Penalize the delta and acceleration
       fg[0] += 5*CppAD::pow(vars[a_start + i], 2);
-      fg[0] += 700*CppAD::pow(vars[delta_start + i] * vars[v_start+i], 2);  // Add Correlation between delta and acceleration
+      fg[0] += 300*CppAD::pow(vars[delta_start + i] * vars[v_start+i], 2);  // Add Correlation between delta and acceleration
     }
 
     for (int i = 0; i < N - 2; i++) {
-      fg[0] += 200*CppAD::pow(vars[delta_start + i + 1] - vars[delta_start + i], 2);  // Penalize the jerk
-      fg[0] += 10*CppAD::pow(vars[a_start + i + 1] - vars[a_start + i], 2);
+      fg[0] += 10*CppAD::pow(vars[delta_start + i + 1] - vars[delta_start + i], 2);  // Penalize the 2nd derivative of angular velocity 
+      fg[0] += 5*CppAD::pow(vars[a_start + i + 1] - vars[a_start + i], 2);   // Penalize the jerk
     }
 
 
@@ -148,7 +148,7 @@ std::vector<double> MPC::Solve(const VectorXd &state, const VectorXd &coeffs) {
   size_t n_vars = N * 6 + (N - 1) * 2;
   
   // Set the number of constraints.
-  size_t n_constraints = 0;
+  size_t n_constraints = N * 6;
 
   // Initial value of the independent variables.
   // SHOULD BE 0 besides initial state.
@@ -249,6 +249,15 @@ std::vector<double> MPC::Solve(const VectorXd &state, const VectorXd &coeffs) {
   // `solution.x[i]`.
   // {...} is shorthand for creating a vector, so auto x1 = {1.0,2.0}
   //   creates a 2 element double vector.
+  std::vector<double> result;
+  result.push_back(solution.x[delta_start]);
+  result.push_back(solution.x[a_start]);
 
-  return {solution.x[delta_start], solution.x[a_start]};
+
+  // We only want to visualize the first N points (The current point is excluded)
+  for (int i = 0 ; i < N-1 ; i++){
+    result.push_back(solution.x[x_start + i + 1]);
+    result.push_back(solution.x[y_start + i + 1]);
+  }
+  return result;
 }
