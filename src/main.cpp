@@ -119,7 +119,7 @@ int main() {
           // the vehicle's coordinate system the points in the simulator are 
           // connected by a Yellow line
 
-          for (double i = 0; i < 60; i += 3){     // You can choose how points you want to visualize
+          for (double i = 0; i < 60; i += 3){     // You can choose how many points you want to visualize
             next_x_vals.push_back(i);
             next_y_vals.push_back(polyeval(coeffs, i));
           }
